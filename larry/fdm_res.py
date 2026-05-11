@@ -3,8 +3,8 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 
-from src.common.base import IterAlgo, MarketData, FDMModelData, Mod, ParameterData
-from src.fdm.engine import Engine
+from src.common.base import MarketData, FDMModelData, ParameterData
+from src.engines.fdm_engine import FDMEngine
 
 import matplotlib.pyplot as plt
 
@@ -12,50 +12,11 @@ import matplotlib.pyplot as plt
 STEPS = 15
 
 
-def run_fdm_lf(mkt: MarketData, mdl: FDMModelData, pmt: ParameterData):
-    """"""
-
-    fdm_engine = Engine(mkt, mdl, pmt)
-
-    vns = fdm_engine.penalty_method1()
-    # vns = fdm_engine.implicit_finite_difference_method_reg1()
-
-    if mdl.M == Mod.LF:
-        vr = vns[:, 0] + fdm_engine.et
-        ilr = mdl.eMax - (vr >= mkt.C0).sum() * mdl.de
-        clr = mdl.eMin + (vr <= -mkt.C1).sum() * mdl.de
-        print("\n")
-        print(f"ILR: {round(ilr, 3)} \t|\t CLR: {round(clr, 3)}")
-    else:
-        vr = vns[:, 0] - fdm_engine.et
-        isr = mdl.eMin + (vr <= mkt.C0).sum() * mdl.de
-        csr = mdl.eMax - (vr >= -mkt.C1).sum() * mdl.de
-        print("\n")
-        print(f"ISR: {round(isr, 3)} \t|\t CSR: {round(csr, 3)}")
-
-    fig, ax = plt.subplots()
-
-    ax.plot(fdm_engine.et, vr, 'b-')
-    ax.plot(fdm_engine.et, mkt.C0 * np.ones(len(vr)), 'k--')
-    ax.plot(fdm_engine.et, -mkt.C1 * np.ones(len(vr)), 'k--')
-    ax.set_xlabel("$e_t$")
-    ax.set_ylabel("$v_t$")
-    if mdl.M == Mod.LF:
-        ax.set_title("$V - W + e_t$")
-    else:
-        ax.set_title("$U - W - e_t$")
-
-    fig.show()
-
-    return vns
-
-
 def run_fdm_lfs(mkt: MarketData, mdl: FDMModelData, pmt: ParameterData) -> Tuple:
     """"""
-    fdm_engine = Engine(mkt, mdl, pmt)
+    fdm_engine = FDMEngine(mkt, mdl, pmt)
 
     vws, uws = fdm_engine.penalty_method2()
-    # vns = fdm_engine.implicit_finite_difference_method_reg2()
 
     fig, ax = plt.subplots(figsize=(8, 6))
 
@@ -90,10 +51,9 @@ def run_fdm_lfs(mkt: MarketData, mdl: FDMModelData, pmt: ParameterData) -> Tuple
 
 def run_fdm_lfs_all(mkt: MarketData, mdl: FDMModelData, pmt: ParameterData) -> Tuple:
     """"""
-    fdm_engine = Engine(mkt, mdl, pmt)
+    fdm_engine = FDMEngine(mkt, mdl, pmt)
 
     vs, us, ws = fdm_engine.penalty_method3()
-    # vs, us, ws = fdm_engine.penalty_method4()
 
     fig, ax = plt.subplots(figsize=(8, 6))
 
@@ -115,7 +75,7 @@ def run_fdm_lfs_all(mkt: MarketData, mdl: FDMModelData, pmt: ParameterData) -> T
 
 def run_fdm_boundaries(mkt: MarketData, mdl: FDMModelData, pmt: ParameterData) -> pd.DataFrame:
     """"""
-    fdm_engine = Engine(mkt, mdl, pmt)
+    fdm_engine = FDMEngine(mkt, mdl, pmt)
 
     vws, uws = fdm_engine.penalty_method2()
 
@@ -160,7 +120,7 @@ if __name__ == "__main__":
     # 2010-2021: 0.0014  0.955
 
     market_data = MarketData(rf=0.07, T=1.0, C0=3.0, C1=3.0)
-    model_data = FDMModelData(T=1.0, L=1e-2, A=IterAlgo.Newton, M=Mod.LSF)
+    model_data = FDMModelData(T=1.0, L=1e-2)
 
     param_list = []
 

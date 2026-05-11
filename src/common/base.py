@@ -5,14 +5,6 @@ from enum import Enum
 from typing import Tuple
 
 
-class Mod(Enum):
-    """Trading / PDE regime shared across subpackages."""
-
-    LF = 0
-    SF = 1
-    LSF = 2
-
-
 @dataclass
 class MarketData:
     """Market-level parameters shared by RL and FDM."""
@@ -34,7 +26,6 @@ class BaseModelData:
     eMax: float = 10.0
     eMin: float = -10.0
     L: float = 1e-3
-    M: Mod = Mod.LF
 
     def __post_init__(self) -> None:
         self.dt: float = self.T / self.N
@@ -49,13 +40,6 @@ class ParameterData:
     gamma: float = 0.6
 
 
-class IterAlgo(Enum):
-    """Iteration algorithm used in nonlinear FDM solvers."""
-
-    Simple = 0
-    Newton = 1
-
-
 @dataclass
 class FDMModelData(BaseModelData):
     """FDM model parameters."""
@@ -66,7 +50,6 @@ class FDMModelData(BaseModelData):
     B: float = 1e5
     E: float = 1e-8
 
-    A: IterAlgo = IterAlgo.Simple
 
 @dataclass
 class RLModelData(BaseModelData):
@@ -90,5 +73,5 @@ class BoundaryData:
     CSR: float = 0.31
 
 
-__all__ = ["Mod", "MarketData", "BaseModelData", "FDMModelData", "RLModelData", "IterAlgo", "ParameterData"]
+__all__ = ["MarketData", "BaseModelData", "FDMModelData", "RLModelData", "ParameterData"]
 
