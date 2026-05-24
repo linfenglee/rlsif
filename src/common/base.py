@@ -1,7 +1,6 @@
 """Shared data containers and enums used by both RL and FDM packages."""
 
 from dataclasses import dataclass
-from enum import Enum
 from typing import Tuple
 
 

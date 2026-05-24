@@ -142,6 +142,5 @@ class FDMEngine(BaseEngine):
         Encapsulates the repeated pattern of building the sparse tridiagonal
         matrix with SciPy and calling spsolve.
         """
-        I = self.mdl.I
-        mat = diags([left[1:], mid, right[:-1]], offsets=[-1, 0, 1], shape=(I + 1, I + 1), format="csc")
+        mat = diags([left[1:], mid, right[:-1]], offsets=[-1, 0, 1], shape=(self.mdl.I + 1, self.mdl.I + 1), format="csc")
         return spsolve(mat, b)
