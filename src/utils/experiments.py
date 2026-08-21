@@ -4,9 +4,10 @@ from typing import List, Tuple, Callable
 import numpy as np
 import pandas as pd
 
+from dataloader.csvloader import cn_loader
 from engines.rl_engine import RLEngine
 from utils.simulator import sim
-from utils.util import get_boundaries
+from utils.util import get_boundaries, get_real_inputs
 
 
 def experiment(engine: RLEngine, num_epochs: int = 3000) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -68,3 +69,36 @@ def experiment_repeats(engine_factory: Callable[[], RLEngine], num_epochs: int =
     base = base[["LossMean", "LossStd", "IL", "IS", "CL", "CS", "Time", "LR"]]
 
     return base, bounds
+
+
+def experiment_real(engine: RLEngine, length: int = 240, start_date: int = 2010, end_date: int = 2020, use_etf: bool = False):
+    """"""
+    data = cn_loader(use_etf=use_etf)
+
+    # Initialize header
+    print('  Iter       Loss        IL            IS            CL            CS        |   Time    LR')
+
+    # Init timer and history list
+    t0 = time.time()
+    history = []
+    count = 1
+    for contract, df in data.groupby("contract"):
+        if contract >= f"IF{end_date}" or contract <= f"IF{start_date}":
+            continue
+        # if "IF1501" <= contract <= "IF1701":
+        #     continue
+        inputs = get_real_inputs(df=df, length=length)
+        loss = engine.train_real(inputs)
+        eil, eis, ecl, ecs = engine.calc_boundaries(t=0.5)
+
+        ct = time.time() - t0
+
+        hentry = (count, loss, eil, eis, ecl, ecs, ct, engine.optim1.param_groups[0]["lr"])
+        history.append(hentry)
+
+        print('{:5d} {:12.4f}  {:12.4f}  {:12.4f}  {:12.4f}  {:12.4f}   | {:6.1f} {:12.6f}'.format(*hentry))
+        count += 1
+    history = pd.DataFrame(history, columns=["Iter", "Loss", "IL", "IS", "CL", "CS", "Time", "LR"]).set_index("Iter")
+    bounds = get_boundaries(engine)
+
+    return history, bounds

@@ -1,6 +1,9 @@
+import numpy as np
 import pandas as pd
+import torch
 from matplotlib import pyplot as plt
 
+from common import MarketData, ParameterData, RLModelData
 from engines.rl_engine import RLEngine
 
 
@@ -12,6 +15,16 @@ def get_boundaries(engine: RLEngine) -> pd.DataFrame:
         ilr, isr, clr, csr = engine.calc_boundaries(t)
         df.loc[t] = [ilr, isr, clr, csr]
     return df
+
+
+def get_real_inputs(df: pd.DataFrame, length: int = 240) -> np.array:
+    """"""
+    inputs = []
+    for td, da in df.groupby("trading_date"):
+        inp = da[["tau", "basis"]].to_numpy()
+        if len(inp) == length:
+            inputs.append(inp)
+    return np.array(inputs)
 
 
 def configure_plot_style() -> None:

@@ -10,7 +10,7 @@ from src.engines.rl_engine import RLEngine
 from src.backtest.trader_common import combine_future_spot, combine_future_spot_new, get_stats
 
 
-def trade_sim_contracts(engine: RLEngine, mdl: RLModelData, inputs_list: List[np.array], rolling_num: int) -> Tuple[float, float, np.array]:
+def trade_sim_contracts(engine: RLEngine, mdl: RLModelData, inputs_list: List[np.ndarray], rolling_num: int) -> Tuple[float, float, np.array]:
     """"""
     tsr = []
     for p in tqdm(range(mdl.P)):
@@ -36,6 +36,7 @@ def trade_sim_contracts(engine: RLEngine, mdl: RLModelData, inputs_list: List[np
                 open_pos = cur_pos * (abs(pre_pos) - 1)
                 close_pos = pre_pos * (abs(cur_pos) - 1)
                 rtn += df * ((open_pos - close_pos) * et - abs(open_pos) * engine.mkt.C0 - abs(close_pos) * engine.mkt.C1)
+                # rtn += df * mdl.L * cur_pos
                 pre_pos = cur_pos
                 rtn_list.append(rtn)
                 count += 1
